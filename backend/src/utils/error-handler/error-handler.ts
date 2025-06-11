@@ -1,4 +1,5 @@
-import type { NextFunction, Request, Response } from "express";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Request, Response, NextFunction } from "express";
 import { AppError } from "./index.js";
 
 export const errorMiddleware = (

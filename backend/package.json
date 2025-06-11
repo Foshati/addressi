@@ -1,42 +1,41 @@
 {
-  "name": "backend",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
+  "name": "dfs",
+  "version": "1.0.0",
+  "main": "index.js",
   "scripts": {
-    "dev": "bun --watch src/server.ts",
-    "build": "bun build src/server.ts --outdir ./dist --target bun",
-    "start": "bun ./dist/server.js",
-    "doc": "bun src/doc/scalar.ts"
+    "dev": "tsnd --respawn --transpile-only --files --require tsconfig-paths/register src/server.ts"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "devDependencies": {
-    "@types/bun": "latest",
+    "@types/compression": "^1.8.1",
     "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.19",
     "@types/ejs": "^3.1.5",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/nodemailer": "^6.4.17",
-    "prisma": "^6.9.0"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
+    "prisma": "^6.9.0",
+    "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0"
   },
   "dependencies": {
     "@prisma/client": "^6.9.0",
     "@scalar/express-api-reference": "^0.8.3",
     "bcryptjs": "^3.0.2",
+    "compression": "^1.8.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
     "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^7.0.3",
-    "nodemon": "^3.1.10",
-    "swagger-autogen": "^2.23.7",
-    "ts-node": "^10.9.2",
-    "zod": "^3.25.61"
+    "swagger-autogen": "^2.23.7"
   }
 }

@@ -13,9 +13,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Check, Copy, MessageSquare, Smartphone, X } from 'lucide-react';
+import { Check, Copy, Filter, MessageSquare, Smartphone, X } from 'lucide-react';
 import SelectFlag from '@/components/select-country'; // Assuming this is a custom component
 import SelectService from '@/components/select-service'; // Assuming this is a custom component
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 // Type Definitions
 // (Assuming SortOption, getFlagEmoji, extractOtp, highlightOTP are defined elsewhere or are correct)
@@ -39,6 +42,7 @@ const FreeVirtualNumberPage = () => {
   const [selectedService, setSelectedService] = useState<string>('');
   const [activeOrderId, setActiveOrderId] = useState<number | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>('price_asc');
+  const [searchTerm, setSearchTerm] = useState('');
   const [copied, setCopied] = useState<string | null>(null);
 
   const selectedCurrency = useAtomValue(selectedCurrencyAtom);
@@ -123,22 +127,38 @@ const FreeVirtualNumberPage = () => {
 
   // --- Memoized Values ---
 
-  const sortedProducts = useMemo(() => {
+  const filteredAndSortedProducts = useMemo(() => {
     if (!products) return [];
-    const sorted = [...products];
+
+    let tempProducts = [...products];
+
+    // Filter by the service selected in the top dropdown
+    if (selectedService) {
+      tempProducts = tempProducts.filter(p => p.id === selectedService);
+    }
+
+    // Filter by search term
+    if (searchTerm) {
+      tempProducts = tempProducts.filter(p =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Sort
     switch (sortOption) {
       case 'price_asc':
-        sorted.sort((a, b) => a.price - b.price);
+        tempProducts.sort((a, b) => a.price - b.price);
         break;
       case 'price_desc':
-        sorted.sort((a, b) => b.price - a.price);
+        tempProducts.sort((a, b) => b.price - a.price);
         break;
       case 'quantity_desc':
-        sorted.sort((a, b) => b.quantity - a.quantity);
+        tempProducts.sort((a, b) => b.quantity - a.quantity);
         break;
     }
-    return sorted;
-  }, [products, sortOption]);
+
+    return tempProducts;
+  }, [products, sortOption, searchTerm, selectedService]);
 
   const serviceOptions = useMemo(() => {
     if (!products) return [];
@@ -198,56 +218,45 @@ const FreeVirtualNumberPage = () => {
   );
 
   const renderProductTable = () => {
-    if (!selectedCountry) return <p className="text-center text-gray-500 mt-8">Please select a country to see available numbers.</p>;
-    if (isLoadingProducts) return <p className="text-center mt-8">Loading numbers...</p>;
-    if (productsError) return <p className="text-center text-red-500 mt-8">Could not load numbers. Please try again.</p>;
-    if (!products || products.length === 0) return <p className="text-center text-gray-500 mt-8">No numbers available for {selectedCountry.name}.</p>;
-
-    const filteredProducts = selectedService ? sortedProducts.filter(p => p.id === selectedService) : sortedProducts;
+    if (!selectedCountry) return <div className="text-center text-muted-foreground pt-10">Please select a country to see available services.</div>;
+    if (isLoadingProducts) return <div className="text-center text-muted-foreground pt-10">Loading services...</div>;
+    if (productsError) return <div className="text-center text-red-500 pt-10">Could not load services. Please try again.</div>;
+    if (!products || products.length === 0) return <div className="text-center text-muted-foreground pt-10">No services available for {selectedCountry.name}.</div>;
+    if (filteredAndSortedProducts.length === 0) return <div className="text-center text-muted-foreground pt-10">No services match your search.</div>;
 
     return (
-      <div className="mt-4">
-        <div className="flex justify-end mb-2">
-          <Select onValueChange={(value: SortOption) => setSortOption(value)} defaultValue={sortOption}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="price_asc">Price: Low to High</SelectItem>
-              <SelectItem value="price_desc">Price: High to Low</SelectItem>
-              <SelectItem value="quantity_desc">Most Available</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Service</TableHead>
-              <TableHead className="text-right">Price</TableHead>
-              <TableHead className="text-right">Available</TableHead>
-              <TableHead></TableHead>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Service</TableHead>
+            <TableHead className="text-right">Price</TableHead>
+            <TableHead className="text-right">Available</TableHead>
+            <TableHead className="w-[120px]"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredAndSortedProducts.map((product) => (
+            <TableRow key={product.id}>
+              <TableCell className="font-medium">{product.name}</TableCell>
+              <TableCell className="text-right">{(product.price * exchangeRate).toFixed(2)} {selectedCurrency}</TableCell>
+              <TableCell className="text-right">
+                <Badge variant={product.quantity > 10 ? 'secondary' : product.quantity > 0 ? 'outline' : 'destructive'}>
+                  {product.quantity}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right">
+                <Button
+                  size="sm"
+                  onClick={() => handleServiceSelectAndBuy(product.id)}
+                  disabled={buyNumberMutation.isPending || !!activeOrderId || product.quantity === 0}
+                >
+                  Get Number
+                </Button>
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredProducts.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell>{product.name}</TableCell>
-                <TableCell className="text-right">{(product.price * exchangeRate).toFixed(2)} {selectedCurrency}</TableCell>
-                <TableCell className="text-right">{product.quantity}</TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    size="sm"
-                    onClick={() => handleServiceSelectAndBuy(product.id)}
-                    disabled={buyNumberMutation.isPending || !!activeOrderId}
-                  >
-                    Get Number
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+          ))}
+        </TableBody>
+      </Table>
     );
   };
 
@@ -345,26 +354,18 @@ const FreeVirtualNumberPage = () => {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center"><Smartphone className="mr-2" />1. Select Service</CardTitle>
+              <CardTitle className="flex items-center"><Smartphone className="mr-2" />1. Select Country & Service</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 transition-shadow">
                 {isLoadingCountries
-                  ? <Skeleton className="h-9 w-full m-1" />
-                  : renderCountrySelector()
+                  ? <Skeleton className="h-10 w-full m-1" />
+                  : <>
+                      <div className="flex-1">{renderCountrySelector()}</div>
+                      <div className="h-6 border-l border-input"></div>
+                      <div className="flex-1">{renderServiceSelector()}</div>
+                    </>
                 }
-                <div className="h-5 border-l border-input"></div>
-                {renderServiceSelector()}
-                <div className="h-5 border-l border-input"></div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="ghost" className="h-9">Sort & Filter</Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80">
-                    {/* Add filtering options here */}
-                    <p>Sorting and filtering options will be here.</p>
-                  </PopoverContent>
-                </Popover>
               </div>
             </CardContent>
           </Card>
@@ -374,6 +375,42 @@ const FreeVirtualNumberPage = () => {
               <CardTitle className="flex items-center"><Smartphone className="mr-2" />2. Choose a Number</CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="flex items-center gap-2 mb-4">
+                <Input
+                  placeholder="Search services..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-grow"
+                  disabled={!selectedCountry || isLoadingProducts}
+                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" disabled={!selectedCountry || isLoadingProducts}>
+                      <Filter className="h-4 w-4" />
+                      <span className="sr-only">Sort and Filter</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-60">
+                    <div className="space-y-4">
+                      <h4 className="font-medium leading-none text-center">Sort By</h4>
+                      <RadioGroup value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)} className="gap-3">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="price_asc" id="r1" />
+                          <Label htmlFor="r1">Price: Low to High</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="price_desc" id="r2" />
+                          <Label htmlFor="r2">Price: High to Low</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="quantity_desc" id="r3" />
+                          <Label htmlFor="r3">Most Available</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
               <ScrollArea className="h-[500px] border rounded-md">
                 {renderProductTable()}
               </ScrollArea>

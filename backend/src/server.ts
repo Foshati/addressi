@@ -10,10 +10,11 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+
+import { apiReference } from '@scalar/express-api-reference';
+import { errorMiddleware } from "./utils/error-handler/error-handler";
 import authRouter from "./routes/auth.router";
 import telRouter from "./routes/tel.router";
-import { errorMiddleware } from "./utils/error-handler/error-handler";
-import { apiReference } from '@scalar/express-api-reference';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,16 +22,21 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // A more robust and configurable CORS setup
-const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || "http://localhost:3000,http://localhost:3002").split(',');
+const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || "http://localhost:3000").split(',');
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests from any localhost origin during development
+      if (!origin || (process.env.NODE_ENV === 'development' && origin.startsWith('http://localhost:'))) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        const allowed = allowedOrigins.includes(origin);
+        if (allowed) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
       }
     },
     credentials: true,
@@ -51,7 +57,7 @@ app.get("/api/v1/health", (_req, res) => {
 });
 
 // Auth routes
-app.use("/api/v1/auth", authRouter);
+app.use("/", authRouter);
 
 // 5SIM Proxy routes
 app.use("/api/v1/tel", telRouter);
@@ -84,19 +90,9 @@ const setupScalar = () => {
 };
 
 // Server
-const PORT = parseInt(process.env.PORT || "8000", 10);
-const SERVER = app.listen(PORT, () => {
-  console.log(`✅ Auth service running at http://localhost:${PORT}/api/v1/health`);
-  setupScalar();
-});
 
-SERVER.on("error", (err: NodeJS.ErrnoException) => {
-  console.error("Auth service error:", err);
-  if (err.code === "EADDRINUSE") {
-    console.log(`Port ${PORT} busy, retrying...`);
-    setTimeout(() => {
-      SERVER.close();
-      SERVER.listen(PORT);
-    }, 1000);
-  }
+const PORT = parseInt(process.env.PORT || "8000", 10);
+const server = app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+  setupScalar();
 });

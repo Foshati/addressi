@@ -64,7 +64,7 @@ const SelectService: React.FC<SelectServiceProps> = ({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("justify-between", triggerClassName)}
+          className={cn("w-full justify-between", triggerClassName)}
           disabled={disabled}
         >
           {selectedOption ? (

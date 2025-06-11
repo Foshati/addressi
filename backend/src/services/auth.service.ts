@@ -3,8 +3,8 @@ import crypto from "crypto"
 import { sendEmail } from "../utils/sendMail";
 import type { NextFunction, Request, Response } from "express";
 import { ValidationError } from "../utils/error-handler";
-import { redis } from "bun";
 import prisma from "../utils/db/prisma";
+import { redis } from "utils/db/redis";
 
 
 
