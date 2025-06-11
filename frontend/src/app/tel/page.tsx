@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Copy, MessageSquare, Smartphone, X } from 'lucide-react';
-import SelectFlag from '@/components/select-flag'; // Assuming this is a custom component
+import SelectFlag from '@/components/select-country'; // Assuming this is a custom component
 import SelectService from '@/components/select-service'; // Assuming this is a custom component
 
 // Type Definitions

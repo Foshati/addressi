@@ -34,11 +34,29 @@ export interface SelectFlagProps {
   disabled?: boolean;
 }
 
-const SelectFlag: React.FC<SelectFlagProps> = ({ options, value, onValueChange, placeholder, triggerClassName, disabled }) => {
+const SelectFlag: React.FC<SelectFlagProps> = ({ 
+  options, 
+  value, 
+  onValueChange, 
+  placeholder = "Select country...", 
+  triggerClassName, 
+  disabled 
+}) => {
   const [open, setOpen] = React.useState(false)
-
-  const selectedOption = options.find((option) =>
-    option && typeof option.value === 'string' && typeof value === 'string' && option.value.toLowerCase() === value.toLowerCase()
+  
+  const selectedOption = React.useMemo(() => 
+    options.find((option) => option.value === value), 
+    [options, value]
+  );
+  
+  const validOptions = React.useMemo(() => 
+    options.filter(option => 
+      option && 
+      option.value && 
+      option.label && 
+      option.flag
+    ),
+    [options]
   );
 
   return (
@@ -51,9 +69,14 @@ const SelectFlag: React.FC<SelectFlagProps> = ({ options, value, onValueChange, 
           className={cn("justify-between", triggerClassName)}
           disabled={disabled}
         >
-          {selectedOption
-            ? <><span className="mr-2">{selectedOption.flag}</span> {selectedOption.label}</>
-            : placeholder || "Select country..."}
+          {selectedOption ? (
+            <div className="flex items-center">
+              <span className="mr-2">{selectedOption.flag}</span>
+              <span>{selectedOption.label}</span>
+            </div>
+          ) : (
+            placeholder
+          )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -63,18 +86,13 @@ const SelectFlag: React.FC<SelectFlagProps> = ({ options, value, onValueChange, 
           <CommandList>
             <CommandEmpty>No country found.</CommandEmpty>
             <CommandGroup>
-              {options
-                .filter(option => option && option.label)
-                .map((option) => (
+              {validOptions.map((option, index) => (
                 <CommandItem
-                  key={option.value} // Use unique value for key
-                  value={option.label} // Search by label
-                  onSelect={(selectedLabel) => {
-                    const selectedOpt = options.find(opt => opt.label === selectedLabel);
-                    if (selectedOpt) {
-                      onValueChange(selectedOpt.value);
-                    }
-                    setOpen(false)
+                  key={`${option.value}-${index}`} // Unique key with fallback
+                  value={`${option.value}__${option.label}`} // Unique value for search
+                  onSelect={() => {
+                    onValueChange(option.value);
+                    setOpen(false);
                   }}
                 >
                   <Check
@@ -84,7 +102,7 @@ const SelectFlag: React.FC<SelectFlagProps> = ({ options, value, onValueChange, 
                     )}
                   />
                   <span className="mr-2">{option.flag}</span>
-                  {option.label}
+                  <span>{option.label}</span>
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
 
@@ -22,7 +24,7 @@ export interface ServiceOption {
   label: string;
 }
 
-interface SelectServiceProps {
+export interface SelectServiceProps {
   options: ServiceOption[];
   value: string;
   onValueChange: (value: string) => void;
@@ -31,9 +33,29 @@ interface SelectServiceProps {
   disabled?: boolean;
 }
 
-const SelectService: React.FC<SelectServiceProps> = ({ options, value, onValueChange, placeholder, triggerClassName, disabled }) => {
+const SelectService: React.FC<SelectServiceProps> = ({ 
+  options, 
+  value, 
+  onValueChange, 
+  placeholder = "Select service...", 
+  triggerClassName, 
+  disabled 
+}) => {
   const [open, setOpen] = React.useState(false)
-  const selectedOption = options.find(option => option.value === value)
+  
+  const selectedOption = React.useMemo(() => 
+    options.find((option) => option.value === value), 
+    [options, value]
+  );
+  
+  const validOptions = React.useMemo(() => 
+    options.filter(option => 
+      option && 
+      option.value && 
+      option.label
+    ),
+    [options]
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -45,26 +67,27 @@ const SelectService: React.FC<SelectServiceProps> = ({ options, value, onValueCh
           className={cn("justify-between", triggerClassName)}
           disabled={disabled}
         >
-          {selectedOption ? selectedOption.label : placeholder || "Select service..."}
+          {selectedOption ? (
+            <span>{selectedOption.label}</span>
+          ) : (
+            placeholder
+          )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-[300px]" align="start">
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
           <CommandInput placeholder="Search service..." />
           <CommandList>
             <CommandEmpty>No service found.</CommandEmpty>
             <CommandGroup>
-              {options.map((option) => (
+              {validOptions.map((option, index) => (
                 <CommandItem
-                  key={option.value}
-                  value={option.label} // Search by label
-                  onSelect={(selectedLabel) => {
-                    const selectedOpt = options.find(opt => opt.label === selectedLabel);
-                    if (selectedOpt) {
-                      onValueChange(selectedOpt.value === value ? "" : selectedOpt.value)
-                    }
-                    setOpen(false)
+                  key={`${option.value}-${index}`}
+                  value={`${option.value}__${option.label}`}
+                  onSelect={() => {
+                    onValueChange(option.value);
+                    setOpen(false);
                   }}
                 >
                   <Check
@@ -73,7 +96,7 @@ const SelectService: React.FC<SelectServiceProps> = ({ options, value, onValueCh
                       value === option.value ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  {option.label}
+                  <span>{option.label}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -84,4 +107,4 @@ const SelectService: React.FC<SelectServiceProps> = ({ options, value, onValueCh
   )
 }
 
-export default SelectService
+export default SelectService;
