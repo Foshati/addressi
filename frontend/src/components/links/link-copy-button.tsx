@@ -1,41 +1,41 @@
 "use client";
 
+import { useState } from "react";
 import { toast } from "sonner";
-
 import { Icons, iconVariants } from "@/components/ui/icons";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
-type LinkCopyButtonProps = {
-  textToCopy: string;
-};
+interface LinkCopyButtonProps {
+  url: string;
+}
 
-export const LinkCopyButton = ({ textToCopy }: LinkCopyButtonProps) => {
-  const handleOnCopy = async () => {
-    await navigator.clipboard.writeText(textToCopy);
-    toast("Copied to clipboard");
+export const LinkCopyButton = ({ url }: LinkCopyButtonProps) => {
+  const [isCopied, setIsCopied] = useState(false);
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setIsCopied(true);
+      toast.success("Link copied to clipboard");
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy link");
+    }
   };
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          className="cursor-pointer transition-opacity opacity-50 hover:opacity-100"
-          aria-label="Copy to clipboard"
-          type="button"
-        >
-          <Icons.Copy
-            className={iconVariants({ size: "sm" })}
-            onClick={handleOnCopy}
-          />
-        </button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p className="font-sans">Copy link to clipboard</p>
-      </TooltipContent>
-    </Tooltip>
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-8 w-8"
+      onClick={copyToClipboard}
+    >
+      {isCopied ? (
+        <Icons.Clipboard className={iconVariants({ size: "sm" })} />
+      ) : (
+        <Icons.Copy className={iconVariants({ size: "sm" })} />
+      )}
+      <span className="sr-only">Copy link</span>
+    </Button>
   );
 };

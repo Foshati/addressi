@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,6 +9,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
 import { toast } from 'sonner';
+import { useUser } from '@/hooks/useUser';
 
 // Define validation schema with Zod
 const emailSchema = z.object({
@@ -55,6 +56,14 @@ export default function ForgotPasswordPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const router = useRouter();
   const inputRef = useRef<(HTMLInputElement | null)[]>([]);
+  const { user, isLoading: isUserLoading } = useUser();
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user && !isUserLoading) {
+      router.push('/');
+    }
+  }, [user, isUserLoading, router]);
 
   // Email form setup
   const emailForm = useForm<EmailFormData>({

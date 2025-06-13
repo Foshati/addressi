@@ -1,14 +1,18 @@
 "use client";
 
-import React from "react";
+import { useState } from "react";
+// import { useRouter } from "next/navigation"; // Removed as no longer used
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createShortLink } from "@/server-link/actions/link";
-import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
+import { toast } from "sonner";
+import { linkApi } from "@/lib/api";
+import { AxiosError } from "axios";
+import { useUser } from "@/hooks/useUser";
+import { useAtom } from "jotai";
+import { createGuestLinkAtom } from "@/store/atoms";
+import { useQueryClient } from "@tanstack/react-query";
 
-import { setFormErrors } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,75 +21,123 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Icons, iconVariants } from "@/components/ui/icons";
 import { Input } from "@/components/ui/input";
+import { Icons, iconVariants } from "@/components/ui/icons";
+import { CustomLinkDialog } from "./custom-link-dialog";
 
 const formSchema = z.object({
-  url: z.string().url(),
+  url: z.string().url("Please enter a valid URL").min(1, "URL is too short").max(2000, "URL is too long"),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
 
-type LinkFormProps = {
-  renderCustomLink: React.ReactNode;
-};
+interface LinkFormProps {
+  onSuccess?: () => void;
+}
 
-export const LinkForm = ({ renderCustomLink }: LinkFormProps) => {
+export const LinkForm = ({ onSuccess }: LinkFormProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useUser();
+  const [, createGuestLink] = useAtom(createGuestLinkAtom);
+  const queryClient = useQueryClient();
+
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
+    mode: "all",
     defaultValues: {
       url: "",
     },
   });
 
-  const { execute: createLink, status: createLinkStatus } = useAction(
-    createShortLink,
-    {
-      onSuccess() {
-        toast.success("Link created successfully");
-        form.reset();
-      },
-      onError(error) {
-        if (error.validationErrors) {
-          return setFormErrors(form, error.validationErrors);
-        }
-        toast.error(error.serverError ?? error.fetchError);
-      },
-    }
-  );
+  const onSubmit = async (values: FormSchema) => {
+    try {
+      setIsLoading(true);
+      const linkData = {
+        url: values.url,
+        title: values.url.substring(0, 100), // Use URL as title
+        isActive: true,
+        clicks: 0,
+        isCustom: false
+      };
 
-  const onSubmit = (values: FormSchema) => {
-    createLink({ url: values.url, slug: "" });
+      if (user) {
+        // If user is logged in, create link through API
+        const response = await linkApi.createLink(linkData);
+        if (!response) {
+          throw new Error("Failed to create link");
+        }
+      } else {
+        // For guest users, create link using Jotai atom
+        createGuestLink(linkData);
+      }
+
+      toast.success("Link created successfully");
+      form.reset();
+      onSuccess?.();
+      if (user) {
+        queryClient.invalidateQueries({ queryKey: ["my-links"] });
+      }
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 401) {
+          toast.error("Please sign in to create links");
+          // router.push("/login"); // Removed as router is no longer used
+        } else if (error.response?.data?.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error("Failed to create link");
+        }
+      } else {
+        toast.error("Failed to create link");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Form {...form}>
-      <div className="flex gap-2 w-full">
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex w-full justify-center gap-2"
-        >
-          <div className="flex-1">
-            <FormField
-              control={form.control}
-              name="url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="Enter the link here" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <Button size="icon" isLoading={createLinkStatus === "executing"}>
-            <Icons.Scissors className={iconVariants({ size: "lg" })} />
-            <span className="sr-only">Create short link</span>
+    <div className="space-y-4">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="relative flex items-center w-full space-x-2">
+          <FormField
+            control={form.control}
+            name="url"
+            render={({ field }) => (
+              <FormItem className="flex-grow mb-0">
+                <FormControl>
+                  <Input
+                    placeholder="Enter the link here"
+                    {...field}
+                    className="flex-grow py-2 px-4 h-14"
+                  />
+                </FormControl>
+                <FormMessage className="absolute -bottom-5 left-0" />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" size="icon" className="h-14 w-14" disabled={isLoading || !form.formState.isValid}>
+            {isLoading ? (
+              <Icons.Loader className={iconVariants({ size: "lg", className: "animate-spin" })} />
+            ) : (
+              <Icons.Scissors className={iconVariants({ size: "lg" })} />
+            )}
+            <span className="sr-only">Shorten link</span>
           </Button>
+          {user && (
+            <CustomLinkDialog>
+              <Button type="button" size="icon" variant="outline" className="h-14 w-14" disabled={isLoading}>
+                <Icons.Settings2 className={iconVariants({ size: "lg" })} />
+                <span className="sr-only">Create custom link</span>
+              </Button>
+            </CustomLinkDialog>
+          )}
         </form>
-        {renderCustomLink}
-      </div>
-    </Form>
+      </Form>
+      {!user && (
+        <p className="text-sm text-muted-foreground text-center">
+          Maximize your link&apos;s lifespan beyond 24 hours by signing in and accessing exclusive editing features!
+        </p>
+      )}
+    </div>
   );
 };

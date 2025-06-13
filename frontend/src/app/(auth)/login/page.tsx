@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,6 +10,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
 import { Github, GoogleButton } from '@/components/icons';
+import { useUser } from '@/hooks/useUser';
 
 // Define validation schema with Zod
 const loginSchema = z.object({
@@ -34,6 +35,13 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { user, isLoading: isUserLoading } = useUser();
+
+  useEffect(() => {
+    if (user && !isUserLoading) {
+      router.push('/');
+    }
+  }, [user, isUserLoading, router]);
 
   const {
     register,

@@ -1,87 +1,51 @@
 "use client";
 
-import React, { useState } from "react";
-import { type ShortLink } from "@/server-link/db/schema";
+import { useState } from "react";
+import { type Link } from "@/lib/api";
 
-import { Button } from "@/components/ui/button";
 import {
-  ResponsiveDialog,
-  ResponsiveDialogBody,
-  ResponsiveDialogClose,
-  ResponsiveDialogContent,
-  ResponsiveDialogFooter,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-  ResponsiveDialogTrigger,
-} from "@/components/ui/responsive-dialog";
-import { CustomLinkButton } from "@/components/links/custom-link-button";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { CustomLinkForm } from "@/components/links/custom-link-form";
 
-type CustomLinkDialogProps = (
-  | {
-      isEditing: boolean;
-      defaultValues: ShortLink;
-    }
-  | {
-      isEditing?: undefined;
-      defaultValues?: undefined;
-    }
-) &
-  (
-    | {
-        open: boolean;
-        onOpenChange: (isOpen: boolean) => void;
-      }
-    | {
-        open?: undefined;
-        onOpenChange?: undefined;
-      }
-  );
+interface CustomLinkDialogProps {
+  children: React.ReactNode;
+  defaultValues?: Link;
+  isEditing?: boolean;
+}
 
 export const CustomLinkDialog = ({
-  open = false,
-  onOpenChange,
+  children,
   defaultValues,
   isEditing = false,
 }: CustomLinkDialogProps) => {
-  const [isOpen, setIsOpen] = useState(open);
-  const isControlled = onOpenChange !== undefined;
-
-  const handleOpenChange = (isOpen: boolean) => {
-    if (!isControlled) {
-      setIsOpen(isOpen);
-    }
-    onOpenChange?.(isOpen);
-  };
-
-  const openState = isControlled ? open : isOpen;
+  const [open, setOpen] = useState(false);
 
   return (
-    <ResponsiveDialog open={openState} onOpenChange={handleOpenChange}>
-      {!isEditing && (
-        <ResponsiveDialogTrigger asChild>
-          <CustomLinkButton />
-        </ResponsiveDialogTrigger>
-      )}
-      <ResponsiveDialogContent>
-        <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>
-            {isEditing ? "Edit link" : "Create a new link"}
-          </ResponsiveDialogTitle>
-        </ResponsiveDialogHeader>
-        <ResponsiveDialogBody>
-          <CustomLinkForm
-            onSetIsDialogOpen={handleOpenChange}
-            defaultValues={defaultValues}
-            isEditing={isEditing}
-          />
-        </ResponsiveDialogBody>
-        <ResponsiveDialogFooter>
-          <ResponsiveDialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </ResponsiveDialogClose>
-        </ResponsiveDialogFooter>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {isEditing ? "Edit Link" : "Create Custom Link"}
+          </DialogTitle>
+          <DialogDescription>
+            {isEditing
+              ? "Edit your custom link details below."
+              : "Create a custom link with your preferred slug."}
+          </DialogDescription>
+        </DialogHeader>
+        <CustomLinkForm
+          onSuccess={() => setOpen(false)}
+          defaultValues={defaultValues}
+          isEditing={isEditing}
+        />
+      </DialogContent>
+    </Dialog>
   );
 };

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const axiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_SERVER_URL,
+    baseURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:8000',
     withCredentials: true,
 
 });
@@ -11,7 +11,8 @@ let refreshSubscribers: (() => void)[] = [];
 
 // Handle logout and prevent infinite loop
 export const handleLogout = () => {
-    if (window.location.pathname !== "/login") {
+    if (typeof window !== 'undefined' && window.location.pathname !== "/login") {
+        document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; // Clear cookie
         window.location.href = "/login";
 
     }
@@ -30,7 +31,14 @@ export const onRefreshSuccess = () => {
 
 // Handle API requests
 axiosInstance.interceptors.request.use(
-    config => config,
+    config => {
+        // Get token from cookies
+        const token = document.cookie.split('; ').find(row => row.startsWith('access_token='))?.split('=')[1];
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
     error => Promise.reject(error)
 )
 
@@ -40,7 +48,13 @@ axiosInstance.interceptors.response.use(
     async error => {
         const originalRequest = error.config;
 
-        // prevent infinite retry loop
+        // If the error is 401 and the request was specifically for user info,
+        // do not redirect to login. This allows pages to load without auth redirect.
+        if (error.response?.status === 401 && originalRequest.url?.endsWith('/api/v1/user/me') && !originalRequest._retry) {
+            return Promise.reject(error); // Just reject, let useQuery handle isError
+        }
+
+        // prevent infinite retry loop for other 401s
         if (error.response?.status === 401 && !originalRequest._retry) {
             if (isRefreshing) {
                 return new Promise(resolve => {
@@ -51,14 +65,14 @@ axiosInstance.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/auth/refresh-token`, {}, { withCredentials: true });
+                await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:8000'}/api/v1/auth/refresh-token`, {}, { withCredentials: true });
                 isRefreshing = false;
                 onRefreshSuccess();
                 return axiosInstance(originalRequest);
             } catch (error) {
                 isRefreshing = false;
                 refreshSubscribers = [];
-                handleLogout();
+                handleLogout(); // This will only be called for other 401s now
                 return Promise.reject(error);
             }
         }

@@ -4,6 +4,7 @@ import {
   Clipboard,
   Copy,
   Download,
+  Edit,
   Eye,
   FileCode2,
   FileImage,
@@ -11,6 +12,7 @@ import {
   Image,
   Layers,
   Link,
+  Loader,
   LogOut,
   Moon,
   MoreVertical,
@@ -23,6 +25,7 @@ import {
   Sun,
   Trash2,
   User,
+  Check,
 } from "lucide-react";
 import type { LucideIcon, LucideProps } from "lucide-react";
 
@@ -91,6 +94,9 @@ const Icons = {
   FileImage,
   FileCode2,
   Shuffle,
+  Edit,
+  Loader,
+  Check,
 };
 
 const iconVariants = cva("", {

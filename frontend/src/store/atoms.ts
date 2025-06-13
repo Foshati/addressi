@@ -1,6 +1,7 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import { Email, Session } from '@/lib/api-email';
+import { Link } from '@/lib/api';
 
 export type Status = 'ONLINE' | 'OFFLINE' | 'LOADING' | 'ERROR';
 
@@ -65,3 +66,52 @@ export const refreshIntervalAtom = atom(10000); // Default 10 seconds
 
 // Atom to control the visibility of the captcha modal
 export const captchaModalAtom = atom(false);
+
+// Atom for guest links
+export const guestLinksAtom = atomWithStorage<Link[]>('guestLinks', [], undefined, storageOptions);
+
+// Atom for managing guest link expiration
+export const guestLinkExpirationAtom = atom(
+  (get) => {
+    const links = get(guestLinksAtom);
+    const now = new Date();
+    return links.filter(link => {
+      if (!link.expiresAt) return true;
+      return new Date(link.expiresAt) > now;
+    });
+  }
+);
+
+// Atom for managing guest link count
+export const guestLinkCountAtom = atom(
+  (get) => get(guestLinkExpirationAtom).length
+);
+
+// Atom for managing guest link creation
+export const createGuestLinkAtom = atom(
+  null,
+  (get, set, link: Omit<Link, 'id' | 'slug' | 'createdAt' | 'updatedAt' | 'expiresAt'>) => {
+    const links = get(guestLinksAtom);
+    const newLink: Link = {
+      ...link,
+      id: Date.now().toString(),
+      slug: Math.random().toString(36).substring(2, 8),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+      clicks: 0,
+      isActive: true,
+      isCustom: false,
+    };
+    set(guestLinksAtom, [...links, newLink]);
+  }
+);
+
+// Atom for managing guest link deletion
+export const deleteGuestLinkAtom = atom(
+  null,
+  (get, set, linkId: string) => {
+    const links = get(guestLinksAtom);
+    set(guestLinksAtom, links.filter(link => link.id !== linkId));
+  }
+);

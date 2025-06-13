@@ -1,65 +1,76 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { deleteShortLink } from "@/server-link/actions/link";
-import { useAction } from "next-safe-action/hooks";
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Icons, iconVariants } from "@/components/ui/icons";
 import { toast } from "sonner";
 
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+interface DeleteLinkDialogProps {
+  onDelete: () => void;
+}
 
-type DeleteLinkDialogProps = {
-  slug: string;
-  isOpen?: boolean;
-  onOpenChange?: (isOpen: boolean) => void;
-};
+export const DeleteLinkDialog = ({ onDelete }: DeleteLinkDialogProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-export const DeleteLinkDialog = ({
-  slug,
-  isOpen,
-  onOpenChange,
-}: DeleteLinkDialogProps) => {
-  const { execute: deleteLink, status: deleteLinkStatus } = useAction(
-    deleteShortLink,
-    {
-      onSuccess() {
-        toast.info("Link deleted successfully");
-        onOpenChange?.(false);
-      },
-      onError(error: any) {
-        toast.error(error.serverError ?? error.fetchError);
-      },
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await onDelete();
+      setIsOpen(false);
+      toast.success("Link deleted successfully");
+    } catch {
+      toast.error("Failed to delete link");
+    } finally {
+      setIsDeleting(false);
     }
-  );
+  };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-[22rem] sm:max-w-lg">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the link.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Icons.Trash2 className={iconVariants({ size: "sm" })} />
+          <span className="sr-only">Delete link</span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete Link</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete this link? This action cannot be
+            undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setIsOpen(false)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
           <Button
             variant="destructive"
-            onClick={() => deleteLink({ slug })}
-            isLoading={deleteLinkStatus === "executing"}
+            onClick={handleDelete}
+            disabled={isDeleting}
           >
-            {deleteLinkStatus === "executing"
-              ? "Deleting link..."
-              : "Delete link"}
+            {isDeleting && (
+              <Icons.Loader className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Delete
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };

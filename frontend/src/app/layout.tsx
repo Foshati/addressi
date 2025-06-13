@@ -6,7 +6,6 @@ import ClientProvider from "@/components/client-provider";
 import { Toaster } from "@/components/ui/sonner";
 import QueryProvider from "@/components/query-provider";
 import { ThemeProvider } from "@/components/theme-provider";
-import Header from "@/components/layout/header";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,7 +32,6 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <div className="min-h-screen flex flex-col">
-                <Header />
                 <main className="flex-grow container mx-auto py-8">
                   {children}
                   <Toaster richColors />

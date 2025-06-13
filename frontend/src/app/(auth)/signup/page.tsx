@@ -9,6 +9,7 @@ import { Eye, EyeOff, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
 import { Github, GoogleButton } from '@/components/icons';
+import { useUser } from '@/hooks/useUser';
 
 // ===== Custom hook for debounce =====
 function useDebounce<T>(value: T, delay: number): T {
@@ -99,6 +100,14 @@ export default function SignupPage() {
   const [userData, setUserData] = useState<SignupFormData | null>(null);
   const inputRef = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
+  const { user, isLoading: isUserLoading } = useUser();
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user && !isUserLoading) {
+      router.push('/');
+    }
+  }, [user, isUserLoading, router]);
 
   // Using OTP timer hook
   const {

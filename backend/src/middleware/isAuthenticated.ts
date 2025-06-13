@@ -1,23 +1,23 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../libs/prisma';
-import { AuthenticatedRequest } from '../types';
 
 export const isAuthenticated = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     // Get token from cookie or Authorization header
     const token = req.cookies.access_token || req.headers.authorization?.split(' ')[1];
 
     // Check if token exists
     if (!token) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
-        message: 'Unauthorized Token missing',
+        message: 'Unauthorized: Token missing',
       });
+      return;
     }
 
     // Verify token
@@ -28,10 +28,11 @@ export const isAuthenticated = async (
 
     // Validate decoded token structure
     if (!decoded || !decoded.id) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         message: 'Invalid authentication token',
       });
+      return;
     }
 
     // Validate that user exists in database
@@ -48,19 +49,22 @@ export const isAuthenticated = async (
     });
 
     if (!account) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         message: 'Account not found',
       });
+      return;
     }
 
     req.user = account;
-    return next();
+    next();
+    return;
   } catch (error) {
     console.error('Authentication error:', error);
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'Invalid authentication token',
     });
+    return;
   }
 };

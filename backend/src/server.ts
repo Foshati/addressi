@@ -18,6 +18,7 @@ import session from 'express-session';
 import fs from 'fs';
 import path from 'path';
 import telRouter from './routes/tel.routes';
+import Linkrouter from './routes/link.routes';
 
 const app = express();
 
@@ -72,6 +73,7 @@ app.get('/api/v1/health', cacheMiddleware(60), (_req, res) => {
 // routes
 app.use('/', router);
 app.use('/api/v1/tel', cacheMiddleware(), telRouter);
+app.use('/api/v1/links', Linkrouter);
 
 // Swagger docs
 if (process.env.NODE_ENV !== 'production') {

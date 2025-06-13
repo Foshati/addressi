@@ -1,91 +1,26 @@
 "use client";
 
-import * as React from "react";
-import { type ShortLink } from "@/server-link/db/schema";
-import { type Session } from "next-auth";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { type Link } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 import { Icons, iconVariants } from "@/components/ui/icons";
-import { ProtectedElement } from "@/components/ui/protected-element";
-import { CustomLinkDialog } from "@/components/links/custom-link-dialog";
-import { DeleteLinkDialog } from "@/components/links/delete-link-dialog";
-import { LinkQRCodeDialog } from "@/components/links/link-qrcode-dialog";
+import { CustomLinkDialog } from "./custom-link-dialog";
 
 type LinkOptionsDropdownProps = {
-  link: ShortLink;
-  session?: Session | null;
+  link: Link;
 };
 
-export const LinkOptionsDropdown = ({
-  link,
-  session,
-}: LinkOptionsDropdownProps) => {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const [isEditLinkDialogOpen, setIsEditLinkDialogOpen] = React.useState(false);
-  const [isQRCodeDialogOpen, setIsQRCodeDialogOpen] = React.useState(false);
-
+export const LinkOptionsDropdown = ({ link }: LinkOptionsDropdownProps) => {
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            className="cursor-pointer transition-opacity absolute right-2 top-3 opacity-50 hover:opacity-100"
-            type="button"
-          >
-            <Icons.MoreVertical className={iconVariants()} />
-            <span className="sr-only">Link actions menu</span>
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setIsQRCodeDialogOpen(true)}>
-            <Icons.QrCode className={iconVariants({ className: "mr-2" })} />
-            QR Code
-          </DropdownMenuItem>
-          <ProtectedElement
-            session={session}
-            tooltipMessage="Sign in to edit links"
-            renderElement={(disabled) => (
-              <DropdownMenuItem
-                onClick={() => setIsEditLinkDialogOpen(true)}
-                disabled={disabled}
-              >
-                <Icons.Pencil className={iconVariants({ className: "mr-2" })} />
-                Edit
-              </DropdownMenuItem>
-            )}
-          />
-          <DropdownMenuItem
-            className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
-            onClick={() => setIsDeleteDialogOpen(true)}
-            disabled={link.slug === "github"}
-          >
-            <Icons.Trash2 className={iconVariants({ className: "mr-2" })} />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <DeleteLinkDialog
-        isOpen={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        slug={link.slug}
-      />
-      <CustomLinkDialog
-        open={isEditLinkDialogOpen}
-        onOpenChange={setIsEditLinkDialogOpen}
-        defaultValues={link}
-        isEditing
-      />
-      <LinkQRCodeDialog
-        isOpen={isQRCodeDialogOpen}
-        onOpenChange={setIsQRCodeDialogOpen}
-        url={link.url}
-        slug={link.slug}
-      />
-    </>
+    <CustomLinkDialog defaultValues={link} isEditing>
+      <Button
+        variant="ghost"
+        className="h-8 w-8 p-0"
+      >
+        <Icons.Edit
+          className={iconVariants({ size: "sm" })}
+          aria-label="Edit link"
+        />
+      </Button>
+    </CustomLinkDialog>
   );
 };
