@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import { useAtom, useSetAtom } from 'jotai';
 import { selectedEmailAtom, sessionAtom, updateEmailAtom } from '@/store/atoms';
 import { readEmail, Email } from '@/lib/api-email';
@@ -41,7 +39,7 @@ export default function EmailViewer() {
 
   if (!selectedEmail) {
     return (
-      <Card className="h-full flex items-center justify-center bg-card/50 border-dashed">
+      <Card className="h-174 flex items-center justify-center bg-card/50 border-dashed">
         <CardContent className="text-center">
           <h3 className="text-lg font-medium">Select an email</h3>
           <p className="text-sm text-muted-foreground">Click an email from the inbox list to view its content here.</p>
@@ -55,7 +53,7 @@ export default function EmailViewer() {
     : selectedEmail.mail_body || "<p>This email has no content.</p>";
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-174 flex flex-col">
       <CardHeader>
         <CardTitle className="truncate">{selectedEmail.mail_subject}</CardTitle>
         <CardDescription>From: {selectedEmail.mail_from}</CardDescription>

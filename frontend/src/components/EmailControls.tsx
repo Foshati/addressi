@@ -13,6 +13,7 @@ import StatusIndicator from './StatusIndicator';
 import { Copy, RefreshCw, Trash2, Check, Settings } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
+import { Card, CardContent } from '@/components/ui/card';
 const CaptchaDialog = dynamic(() => import('./CaptchaDialog'), { ssr: false });
 
 export default function EmailControls() {
@@ -103,82 +104,86 @@ export default function EmailControls() {
   };
 
   return (
-    <TooltipProvider delayDuration={100}>
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Email Controls</h3>
-          <StatusIndicator status={status} />
-        </div>
+    <Card>
+      <CardContent className="pt-4">
+        <TooltipProvider delayDuration={100}>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Email Controls</h3>
+              <StatusIndicator status={status} />
+            </div>
 
-        <div className="flex items-center space-x-2">
-          <Input readOnly value={session?.email_addr || (isMounted ? 'No active email' : '...')} className="flex-1" />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" onClick={handleCopyToClipboard} disabled={!isMounted || !session?.email_addr}>
-                {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Copy Email Address</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" onClick={handleRefreshMail} disabled={!isMounted || status === 'LOADING'}>
-                  <RefreshCw className={`h-4 w-4 ${status === 'LOADING' ? 'animate-spin' : ''}`} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Refresh Inbox</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="destructive" size="icon" onClick={() => setCaptchaOpen(true)} disabled={!isMounted || status === 'LOADING'}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Get a New Address</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" disabled={!isMounted || status === 'LOADING'}>
-                    <Settings className="h-4 w-4" />
+            <div className="flex items-center space-x-2">
+              <Input readOnly value={session?.email_addr || (isMounted ? 'No active email' : '...')} className="flex-1" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" onClick={handleCopyToClipboard} disabled={!isMounted || !session?.email_addr}>
+                    {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                   </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Auto-Refresh Settings</p>
-              </TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Auto-Refresh</DropdownMenuLabel>
-              <DropdownMenuCheckboxItem
-                checked={autoRefresh}
-                onCheckedChange={setAutoRefresh}
-              >
-                Enable
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Interval</DropdownMenuLabel>
-              <DropdownMenuItem onSelect={() => setRefreshInterval(10000)} disabled={!autoRefresh}>10 seconds</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setRefreshInterval(30000)} disabled={!autoRefresh}>30 seconds</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setRefreshInterval(60000)} disabled={!autoRefresh}>1 minute</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        <CaptchaDialog onVerifySuccess={onCaptchaSuccess} />
-      </div>
-    </TooltipProvider>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Copy Email Address</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" onClick={handleRefreshMail} disabled={!isMounted || status === 'LOADING'}>
+                      <RefreshCw className={`h-4 w-4 ${status === 'LOADING' ? 'animate-spin' : ''}`} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Refresh Inbox</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="destructive" size="icon" onClick={() => setCaptchaOpen(true)} disabled={!isMounted || status === 'LOADING'}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Get a New Address</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+
+              <DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="icon" disabled={!isMounted || status === 'LOADING'}>
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Auto-Refresh Settings</p>
+                  </TooltipContent>
+                </Tooltip>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Auto-Refresh</DropdownMenuLabel>
+                  <DropdownMenuCheckboxItem
+                    checked={autoRefresh}
+                    onCheckedChange={setAutoRefresh}
+                  >
+                    Enable
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Interval</DropdownMenuLabel>
+                  <DropdownMenuItem onSelect={() => setRefreshInterval(10000)} disabled={!autoRefresh}>10 seconds</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setRefreshInterval(30000)} disabled={!autoRefresh}>30 seconds</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setRefreshInterval(60000)} disabled={!autoRefresh}>1 minute</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+          <CaptchaDialog onVerifySuccess={onCaptchaSuccess} />
+        </TooltipProvider>
+      </CardContent>
+    </Card>
   );
 }

@@ -92,7 +92,7 @@ export default function ForgotPasswordPage() {
   const requestOtpMutation = useMutation({
     mutationFn: async (data: EmailFormData) => {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/v1/auth/forgot-password`,
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/auth/forgot-password`,
         { email: data.email }
       );
       return response.data;
@@ -115,7 +115,7 @@ export default function ForgotPasswordPage() {
     mutationFn: async () => {
       if (!userEmail) throw new Error('User email not found');
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/v1/auth/forgot-password/verify`,
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/auth/forgot-password/verify`,
         { email: userEmail, otp: otp.join('') }
       );
       return response.data;
@@ -136,7 +136,7 @@ export default function ForgotPasswordPage() {
     mutationFn: async (data: PasswordFormData) => {
       if (!userEmail) throw new Error('User email not found');
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/v1/auth/reset-password`,
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/auth/reset-password`,
         { email: userEmail, newPassword: data.password }
       );
       return response.data;

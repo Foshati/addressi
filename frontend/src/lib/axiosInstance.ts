@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const axiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_SERVER_URI,
+    baseURL: process.env.NEXT_PUBLIC_SERVER_URL,
     withCredentials: true,
 
 });
@@ -51,7 +51,7 @@ axiosInstance.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URI}/api/v1/auth/refresh-token`, {}, { withCredentials: true });
+                await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/auth/refresh-token`, {}, { withCredentials: true });
                 isRefreshing = false;
                 onRefreshSuccess();
                 return axiosInstance(originalRequest);

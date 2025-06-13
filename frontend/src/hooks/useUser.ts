@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 // Improved fetch user function with error handling
 export const fetchUser = async () => {
     const response = await axiosInstance.get("/api/v1/user/me");
-    return response.data.user;
+    return response.data;
 }
 
 export const useUser = () => {

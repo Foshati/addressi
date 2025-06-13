@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
 import { Github, GoogleButton } from '@/components/icons';
 
@@ -33,6 +33,7 @@ export default function LoginPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -46,7 +47,7 @@ export default function LoginPage() {
   const loginMutation = useMutation({
     mutationFn: async (data: LoginFormData) => {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/v1/auth/login`,
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/auth/login`,
         data,
         {
           headers: {
@@ -59,6 +60,7 @@ export default function LoginPage() {
     },
     onSuccess: (_data) => {
       setServerError(null);
+      queryClient.invalidateQueries({ queryKey: ['user'] });
       router.push('/');
     },
     onError: (error: AxiosError) => {

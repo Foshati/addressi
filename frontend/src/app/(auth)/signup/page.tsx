@@ -161,7 +161,7 @@ export default function SignupPage() {
       }
 
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/v1/utils/validate-field`,
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/utils/validate-field`,
         { field: 'email', value: debouncedEmail }
       );
       return response.data;
@@ -191,7 +191,7 @@ export default function SignupPage() {
       }
 
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/v1/utils/validate-field`,
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/utils/validate-field`,
         { field: 'username', value: debouncedUsername }
       );
       return response.data;
@@ -216,7 +216,7 @@ export default function SignupPage() {
     try {
       setServerError(null);
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/v1/auth/register`,
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/auth/register`,
         data
       );
 
@@ -241,7 +241,7 @@ export default function SignupPage() {
     try {
       setServerError(null);
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/v1/auth/verify`,
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/auth/verify`,
         {
           ...userData,
           otp: otp.join(''),
@@ -269,7 +269,7 @@ export default function SignupPage() {
     try {
       setServerError(null);
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/v1/utils/resend-otp`,
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/utils/resend-otp`,
         { email: userData.email }
       );
 
@@ -350,7 +350,7 @@ export default function SignupPage() {
   const isVerifyOtpButtonDisabled = otp.some((digit) => !digit);
 
   return (
-      <div className="w-full flex flex-col items-center pt-10 min-h-screen">
+    <div className="w-full flex flex-col items-center pt-10 min-h-screen">
       <div className="w-full max-w-md mx-auto  p-6 ">
         {!isShowOtp ? (
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -442,14 +442,14 @@ export default function SignupPage() {
               {/* فقط اگر خطا وجود داشته باشد یا یوزرنیم از قبل گرفته شده باشد پیام را نمایش می‌دهیم */}
               {(errors.username ||
                 (isUsernameValidated && !usernameValidation?.valid)) && (
-                <p
-                  id="username-feedback"
-                  className="text-red-500 text-sm mt-1"
-                  aria-live="polite"
-                >
-                  {errors.username?.message || usernameValidation?.message}
-                </p>
-              )}
+                  <p
+                    id="username-feedback"
+                    className="text-red-500 text-sm mt-1"
+                    aria-live="polite"
+                  >
+                    {errors.username?.message || usernameValidation?.message}
+                  </p>
+                )}
             </div>
 
             {/* Email field */}
@@ -500,14 +500,14 @@ export default function SignupPage() {
               {/* فقط اگر خطا وجود داشته باشد یا ایمیل از قبل گرفته شده باشد پیام را نمایش می‌دهیم */}
               {(errors.email ||
                 (isEmailValidated && !emailValidation?.valid)) && (
-                <p
-                  id="email-feedback"
-                  className="text-red-500 text-sm mt-1"
-                  aria-live="polite"
-                >
-                  {errors.email?.message || emailValidation?.message}
-                </p>
-              )}
+                  <p
+                    id="email-feedback"
+                    className="text-red-500 text-sm mt-1"
+                    aria-live="polite"
+                  >
+                    {errors.email?.message || emailValidation?.message}
+                  </p>
+                )}
             </div>
 
             {/* Password field */}

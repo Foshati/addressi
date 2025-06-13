@@ -57,7 +57,7 @@ export default function EmailList() {
   }, []);
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-120 flex flex-col">
       <CardHeader>
         <CardTitle>Inbox</CardTitle>
         <Input
@@ -70,7 +70,7 @@ export default function EmailList() {
       <CardContent className="flex-grow overflow-hidden">
         <ScrollArea className="h-full pr-4">
           {isMounted ? (
-            <Suspense fallback={<div className="text-center py-10">Loading...</div>}>
+            <Suspense fallback={<div className="text-center py-10">Loading...</div>}> 
               <EmailListContent />
             </Suspense>
           ) : (

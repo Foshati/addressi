@@ -1,98 +1,107 @@
-import dotenv from "dotenv";
+// apps/auth-service/src/main.ts
+import dotenv from 'dotenv';
 dotenv.config();
 
-// Import and execute swagger generation first
-
-import express from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import compression from 'compression';
+import router from './routes/auth.routes';
+import { errorMiddleware } from './middleware/error-middleware';
+import { cacheMiddleware } from './middleware/cache-middleware';
+import logger from './utils/logger';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './swagger-ui/swagger-output.json';
+import session from 'express-session';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-
-import { apiReference } from '@scalar/express-api-reference';
-import { errorMiddleware } from "./utils/error-handler/error-handler";
-import authRouter from "./routes/auth.router";
-import telRouter from "./routes/tel.router";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import telRouter from './routes/tel.routes';
 
 const app = express();
 
-// A more robust and configurable CORS setup
-const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || "http://localhost:3000").split(',');
+// Security middleware
+app.use(helmet());
 
+// Cookie parser
+app.use(cookieParser());
+
+// Body parsers
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb' }));
+
+// Session middleware
 app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests from any localhost origin during development
-      if (!origin || (process.env.NODE_ENV === 'development' && origin.startsWith('http://localhost:'))) {
-        callback(null, true);
-      } else {
-        const allowed = allowedOrigins.includes(origin);
-        if (allowed) {
-          callback(null, true);
-        } else {
-          callback(new Error('Not allowed by CORS'));
-        }
-      }
-    },
-    credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    exposedHeaders: ["set-cookie"],
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  session({
+    secret: process.env.SESSION_SECRET || 'supersecret',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: process.env.NODE_ENV === 'production' },
   })
 );
 
-// Body parsers
-app.use(express.json({ limit: "100mb" }));
-app.use(express.urlencoded({ extended: true, limit: "100mb" }));
-app.use(cookieParser());
+// Compression middleware
+app.use(compression());
+
+// Rate limiting - only for API routes
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  message: 'Too many requests from this IP, please try again later.',
+});
+app.use('/api/', limiter);
+
+// CORS
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['set-cookie'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  })
+);
 
 // Health check
-app.get("/api/v1/health", (_req, res) => {
-  res.json({ message: "Auth service is healthy!" });
+app.get('/api/v1/health', cacheMiddleware(60), (_req, res) => {
+  logger.info('Health check endpoint called');
+  res.json({ message: 'Auth service is healthy!' });
 });
 
-// Auth routes
-app.use("/", authRouter);
+// routes
+app.use('/', router);
+app.use('/api/v1/tel', cacheMiddleware(), telRouter);
 
-// 5SIM Proxy routes
-app.use("/api/v1/tel", telRouter);
+// Swagger docs
+if (process.env.NODE_ENV !== 'production') {
+  app.use(
+    '/docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerDocument, {
+      customCss: fs.readFileSync(path.join(__dirname, 'swagger-ui/SwaggerDark.css'), 'utf8'),
+      customSiteTitle: 'Auth Service API Documentation',
+    })
+  );
+  app.use('/docs.json', (_req, res) => res.json(swaggerDocument));
+}
 
 // Global error handler
 app.use(errorMiddleware as unknown as express.ErrorRequestHandler);
 
-// Setup Scalar API Reference
-const setupScalar = () => {
-  try {
-    // Get API specification
-    const apiSpecPath = path.join(__dirname, 'doc', 'scalar-output.json');
-    const apiSpec = JSON.parse(fs.readFileSync(apiSpecPath, 'utf8'));
+const PORT = parseInt(process.env.PORT || '8000', 10);
+const SERVER = app.listen(PORT, () => {
+  logger.info(`Auth service running at http://localhost:${PORT}/api/v1/health`);
+  console.log(`Swagger UI is running at http://localhost:${PORT}/docs`);
+});
 
-    // Setup Scalar routes
-    app.use(
-      '/reference',
-      apiReference({
-        content: apiSpec,
-        // You can choose from available themes: 'dark', 'light', 'material', etc.
-        theme: 'purple'
-      })
-    );
-
-    // Log the documentation URL for easy access
-    console.log(`📚 API Documentation available at http://localhost:${PORT}/reference`);
-  } catch (error) {
-    console.error('❌ Failed to setup API documentation:', error);
+SERVER.on('error', (err: NodeJS.ErrnoException) => {
+  logger.error('Auth service error:', err);
+  if (err.code === 'EADDRINUSE') {
+    logger.warn(`Port ${PORT} busy, retrying...`);
+    setTimeout(() => {
+      SERVER.close();
+      SERVER.listen(PORT);
+    }, 1000);
   }
-};
-
-// Server
-
-const PORT = parseInt(process.env.PORT || "8000", 10);
-const server = app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-  setupScalar();
 });
