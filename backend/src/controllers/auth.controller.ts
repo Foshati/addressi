@@ -354,7 +354,7 @@ export const validateField = async (req: Request, res: Response, next: NextFunct
 };
 
 // Logout user
-export const userLogout = (req: Request, res: Response) => {
+export const userLogout = (_req: Request, res: Response) => {
   res.clearCookie('access_token');
   res.clearCookie('refresh_token');
   res.status(200).json({ success: true, message: 'Logged out successfully' });

@@ -1,13 +1,11 @@
 "use client"
 
-import { TrendingUp } from "lucide-react"
-import { Bar, BarChart, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -17,67 +15,56 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { CountryClick } from "@/lib/api"
 
-export const description = "A horizontal bar chart"
-
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-]
+export const description = "A bar chart with horizontal bars."
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-1)",
+  count: {
+    label: "Clicks",
+    color: "hsl(var(--chart-1))",
   },
 } satisfies ChartConfig
 
-export function ChartBarHorizontal() {
+interface ChartBarHorizontalProps {
+  data: CountryClick[]
+}
+
+export function ChartBarHorizontal({ data }: ChartBarHorizontalProps) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Bar Chart - Horizontal</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+      <CardHeader className="pb-4">
+        <CardTitle>Top Countries</CardTitle>
+        <CardDescription>Top 6 countries by visits</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
+        <ChartContainer
+          config={chartConfig}
+          className="aspect-auto h-[250px] w-full"
+        >
           <BarChart
-            accessibilityLayer
-            data={chartData}
+            data={data}
             layout="vertical"
-            margin={{
-              left: -20,
-            }}
+            margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
           >
-            <XAxis type="number" dataKey="desktop" hide />
+            <CartesianGrid horizontal={false} />
             <YAxis
-              dataKey="month"
+              dataKey="country"
               type="category"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
+              hide={false}
             />
+            <XAxis dataKey="count" type="number" hide />
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar dataKey="desktop" fill="var(--color-desktop)" radius={5} />
+            <Bar dataKey="count" fill="var(--color-count)" radius={5} />
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="text-muted-foreground leading-none">
-          Showing total visitors for the last 6 months
-        </div>
-      </CardFooter>
     </Card>
   )
 }

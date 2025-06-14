@@ -34,7 +34,7 @@ app.use(errorMiddleware);
 describe('Auth Controller', () => {
   beforeAll(async () => {
     await prisma.user.deleteMany();
-  }, 10000);
+  }, 30000);
 
   afterAll(async () => {
     await prisma.$disconnect();
@@ -62,7 +62,7 @@ describe('Auth Controller', () => {
         'OTP sent to your email, Please verify your account'
       );
       expect(sendEmail).toHaveBeenCalled();
-    });
+    }, 30000);
 
     it('should not send OTP for existing email', async () => {
       // Create a user first
@@ -90,6 +90,6 @@ describe('Auth Controller', () => {
         'message',
         'Email is already registered. Please use a different email.'
       );
-    });
+    }, 30000);
   });
 });

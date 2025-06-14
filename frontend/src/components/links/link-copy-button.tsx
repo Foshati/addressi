@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 
 interface LinkCopyButtonProps {
   url: string;
+  children?: React.ReactNode;
 }
 
-export const LinkCopyButton = ({ url }: LinkCopyButtonProps) => {
+export const LinkCopyButton = ({ url, children }: LinkCopyButtonProps) => {
   const [isCopied, setIsCopied] = useState(false);
 
   const copyToClipboard = async () => {
@@ -30,10 +31,12 @@ export const LinkCopyButton = ({ url }: LinkCopyButtonProps) => {
       className="h-8 w-8"
       onClick={copyToClipboard}
     >
-      {isCopied ? (
-        <Icons.Clipboard className={iconVariants({ size: "sm" })} />
-      ) : (
-        <Icons.Copy className={iconVariants({ size: "sm" })} />
+      {children || (
+        isCopied ? (
+          <Icons.Clipboard className={iconVariants({ size: "sm" })} />
+        ) : (
+          <Icons.Copy className={iconVariants({ size: "sm" })} />
+        )
       )}
       <span className="sr-only">Copy link</span>
     </Button>

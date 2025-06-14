@@ -61,6 +61,7 @@ const Header = () => {
                 <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
                     <Link href="/email" className="text-muted-foreground hover:text-foreground transition-colors">Email</Link>
                     <Link href="/tel" className="text-muted-foreground hover:text-foreground transition-colors">Virtual number</Link>
+                    <Link href="/zipLink" className="text-muted-foreground hover:text-foreground transition-colors">zip Link</Link>
                 </nav>
 
                 <div className="flex items-center gap-2">
@@ -138,6 +139,9 @@ const Header = () => {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
                                     <Link href="/tel">Virtual number</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/zipLink">zip Link</Link>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

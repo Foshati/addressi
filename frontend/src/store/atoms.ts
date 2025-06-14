@@ -1,7 +1,7 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import { Email, Session } from '@/lib/api-email';
-import { Link } from '@/lib/api';
+import { Link, linkApi, CreateLinkData } from '@/lib/api';
 
 export type Status = 'ONLINE' | 'OFFLINE' | 'LOADING' | 'ERROR';
 
@@ -90,20 +90,22 @@ export const guestLinkCountAtom = atom(
 // Atom for managing guest link creation
 export const createGuestLinkAtom = atom(
   null,
-  (get, set, link: Omit<Link, 'id' | 'slug' | 'createdAt' | 'updatedAt' | 'expiresAt'>) => {
-    const links = get(guestLinksAtom);
-    const newLink: Link = {
-      ...link,
-      id: Date.now().toString(),
-      slug: Math.random().toString(36).substring(2, 8),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
-      clicks: 0,
-      isActive: true,
-      isCustom: false,
-    };
-    set(guestLinksAtom, [...links, newLink]);
+  async (get, set, linkData: CreateLinkData & { expiresAt?: string }) => {
+    try {
+      const newLink = await linkApi.createGuestLink({
+        title: linkData.title,
+        url: linkData.url,
+        description: linkData.description,
+        customSlug: linkData.customSlug,
+        expiresAt: linkData.expiresAt,
+      });
+      const links = get(guestLinksAtom);
+      set(guestLinksAtom, [...links, newLink]);
+      return newLink;
+    } catch (error) {
+      console.error('Failed to create guest link via API:', error);
+      throw error;
+    }
   }
 );
 

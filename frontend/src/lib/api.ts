@@ -86,6 +86,27 @@ interface ApiResponse<T> {
   message?: string;
 }
 
+// New interfaces for analytics data
+export interface DailyClick {
+  date: string;
+  count: number;
+}
+
+export interface ReferrerClick {
+  referrer: string;
+  count: number;
+}
+
+export interface MonthlyClick {
+  month: string;
+  count: number;
+}
+
+export interface CountryClick {
+  country: string;
+  count: number;
+}
+
 export const linkApi = {
   createLink: async (data: CreateLinkData) => {
     try {
@@ -149,6 +170,57 @@ export const linkApi = {
   deleteLink: async (id: string) => {
     try {
       await api.delete(`/api/v1/links/${id}`);
+    } catch (error) {
+      handleApiError(error);
+      throw error;
+    }
+  },
+
+  // New analytics API calls
+  getDailyClicks: async (id: string) => {
+    try {
+      const response = await api.get<ApiResponse<DailyClick[]>>(`/api/v1/links/${id}/analytics/daily`);
+      return response.data.data;
+    } catch (error) {
+      handleApiError(error);
+      throw error;
+    }
+  },
+
+  getReferrerClicks: async (id: string) => {
+    try {
+      const response = await api.get<ApiResponse<ReferrerClick[]>>(`/api/v1/links/${id}/analytics/referrer`);
+      return response.data.data;
+    } catch (error) {
+      handleApiError(error);
+      throw error;
+    }
+  },
+
+  getMonthlyClicks: async (id: string) => {
+    try {
+      const response = await api.get<ApiResponse<MonthlyClick[]>>(`/api/v1/links/${id}/analytics/monthly`);
+      return response.data.data;
+    } catch (error) {
+      handleApiError(error);
+      throw error;
+    }
+  },
+
+  getCountryClicks: async (id: string) => {
+    try {
+      const response = await api.get<ApiResponse<CountryClick[]>>(`/api/v1/links/${id}/analytics/country`);
+      return response.data.data;
+    } catch (error) {
+      handleApiError(error);
+      throw error;
+    }
+  },
+
+  createGuestLink: async (data: CreateLinkData & { expiresAt?: string }) => {
+    try {
+      const response = await api.post<ApiResponse<Link>>('/api/v1/links/guest', data);
+      return response.data.data;
     } catch (error) {
       handleApiError(error);
       throw error;

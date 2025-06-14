@@ -8,8 +8,8 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
-import router from './routes/auth.routes';
-import { errorMiddleware } from './middleware/error-middleware';
+import authRoutes from './routes/auth.routes';
+import { errorHandler } from './middleware/error-handler';
 import { cacheMiddleware } from './middleware/cache-middleware';
 import logger from './utils/logger';
 import swaggerUi from 'swagger-ui-express';
@@ -17,8 +17,10 @@ import swaggerDocument from './swagger-ui/swagger-output.json';
 import session from 'express-session';
 import fs from 'fs';
 import path from 'path';
-import telRouter from './routes/tel.routes';
-import Linkrouter from './routes/link.routes';
+import telRoutes from './routes/tel.routes';
+import linkRoutes from './routes/link.routes';
+import linkTreeRoutes from './routes/linktree.routes';
+import socialLinkRoutes from './routes/social-link.routes';
 
 const app = express();
 
@@ -71,9 +73,11 @@ app.get('/api/v1/health', cacheMiddleware(60), (_req, res) => {
 });
 
 // routes
-app.use('/', router);
-app.use('/api/v1/tel', cacheMiddleware(), telRouter);
-app.use('/api/v1/links', Linkrouter);
+app.use('/', authRoutes);
+app.use('/api/v1/tel', cacheMiddleware(), telRoutes);
+app.use('/api/v1/links', linkRoutes);
+app.use('/api/v1/linktree', linkTreeRoutes);
+app.use('/api/v1/social-links', socialLinkRoutes);
 
 // Swagger docs
 if (process.env.NODE_ENV !== 'production') {
@@ -89,7 +93,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Global error handler
-app.use(errorMiddleware as unknown as express.ErrorRequestHandler);
+app.use(errorHandler);
 
 const PORT = parseInt(process.env.PORT || '8000', 10);
 const SERVER = app.listen(PORT, () => {

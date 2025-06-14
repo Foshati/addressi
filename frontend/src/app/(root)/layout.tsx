@@ -14,10 +14,8 @@ export default function RootLayout({
 }>) {
   return (
     <div >
-        <div className="">
         <Header />
 
-        </div>
       <main className="mt-4">
         {children}
       </main>

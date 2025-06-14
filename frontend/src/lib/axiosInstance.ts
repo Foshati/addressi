@@ -50,7 +50,7 @@ axiosInstance.interceptors.response.use(
 
         // If the error is 401 and the request was specifically for user info,
         // do not redirect to login. This allows pages to load without auth redirect.
-        if (error.response?.status === 401 && originalRequest.url?.endsWith('/api/v1/user/me') && !originalRequest._retry) {
+        if (error.response?.status === 401 && (originalRequest.url?.endsWith('/api/v1/user/me') || originalRequest.url?.endsWith('/api/v1/linktree/profile')) && !originalRequest._retry) {
             return Promise.reject(error); // Just reject, let useQuery handle isError
         }
 

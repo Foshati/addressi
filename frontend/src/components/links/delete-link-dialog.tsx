@@ -16,9 +16,10 @@ import { toast } from "sonner";
 
 interface DeleteLinkDialogProps {
   onDelete: () => void;
+  children?: React.ReactNode;
 }
 
-export const DeleteLinkDialog = ({ onDelete }: DeleteLinkDialogProps) => {
+export const DeleteLinkDialog = ({ onDelete, children }: DeleteLinkDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -38,10 +39,12 @@ export const DeleteLinkDialog = ({ onDelete }: DeleteLinkDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <Icons.Trash2 className={iconVariants({ size: "sm" })} />
-          <span className="sr-only">Delete link</span>
-        </Button>
+        {children || (
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Icons.Trash2 className={iconVariants({ size: "sm" })} />
+            <span className="sr-only">Delete link</span>
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

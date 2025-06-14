@@ -15,19 +15,22 @@ import { QRCodeSVG } from "qrcode.react";
 
 interface LinkQRCodeDialogProps {
   link: Link;
+  children?: React.ReactNode;
 }
 
-export const LinkQRCodeDialog = ({ link }: LinkQRCodeDialogProps) => {
+export const LinkQRCodeDialog = ({ link, children }: LinkQRCodeDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const shortUrl = `${window.location.origin}/${link.slug}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <Icons.QrCode className={iconVariants({ size: "sm" })} />
-          <span className="sr-only">Show QR code</span>
-        </Button>
+        {children || (
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Icons.QrCode className={iconVariants({ size: "sm" })} />
+            <span className="sr-only">Show QR code</span>
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

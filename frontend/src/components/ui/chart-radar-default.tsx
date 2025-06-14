@@ -1,75 +1,75 @@
-"use client"
+"use client";
 
-import { TrendingUp } from "lucide-react"
-import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts"
+import {
+  PolarAngleAxis,
+  PolarGrid,
+  Radar,
+  RadarChart,
+  PolarRadiusAxis,
+} from "recharts";
 
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
+import { MonthlyClick } from "@/lib/api";
 
-export const description = "A radar chart"
-
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 273 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-]
+export const description = "A default Radar chart.";
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-1)",
+  count: {
+    label: "Clicks",
+    color: "hsl(var(--chart-1))",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
-export function ChartRadarDefault() {
+interface ChartRadarDefaultProps {
+  data: MonthlyClick[];
+}
+
+export function ChartRadarDefault({ data }: ChartRadarDefaultProps) {
+  const formatMonth = (monthString: string) => {
+    if (!monthString) return "";
+    const [year, monthNum] = monthString.split("-");
+    const date = new Date(parseInt(year), parseInt(monthNum) - 1);
+    return date.toLocaleString("en-US", { month: "short", year: "2-digit" });
+  };
+
   return (
     <Card>
       <CardHeader className="items-center pb-4">
-        <CardTitle>Radar Chart</CardTitle>
-        <CardDescription>
-          Showing total visitors for the last 6 months
-        </CardDescription>
+        <CardTitle>Monthly Visits</CardTitle>
+        <CardDescription>Visits per month</CardDescription>
       </CardHeader>
       <CardContent className="pb-0">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px]"
+          className="mx-auto aspect-square h-[250px]"
         >
-          <RadarChart data={chartData}>
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <PolarAngleAxis dataKey="month" />
+          <RadarChart data={data}>
             <PolarGrid />
+            <PolarAngleAxis dataKey="month" tickFormatter={formatMonth} />
+            <PolarRadiusAxis />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <Radar
-              dataKey="desktop"
-              fill="var(--color-desktop)"
+              dataKey="count"
+              fill="var(--color-count)"
               fillOpacity={0.6}
+              stroke="var(--color-count)"
+              strokeWidth={2}
             />
           </RadarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 leading-none font-medium">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="text-muted-foreground flex items-center gap-2 leading-none">
-          January - June 2024
-        </div>
-      </CardFooter>
     </Card>
-  )
+  );
 }

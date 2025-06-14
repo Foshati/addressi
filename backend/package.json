@@ -49,7 +49,9 @@
     "nodemailer": "^6.9.7",
     "swagger-autogen": "^2.23.7",
     "winston": "^3.17.0",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "ua-parser-js": "^1.0.37",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -67,6 +69,7 @@
     "@types/redis": "^4.0.10",
     "@types/supertest": "^6.0.3",
     "@types/swagger-ui-express": "^4.1.8",
+    "@types/ua-parser-js": "^0.7.39",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.57.1",
@@ -87,5 +90,8 @@
       "prettier --write",
       "eslint --fix"
     ]
-  }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

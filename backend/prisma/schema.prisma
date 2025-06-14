@@ -22,6 +22,12 @@ model User {
   images  Image?
   profile Profile?
   links   Link[]
+
+  // LinkTree Relations
+  linkTreeProfile   LinkTreeProfile?
+  linkTreeLinks     LinkTreeLink[]
+  linkTreeAnalytics LinkTreeAnalytics[]
+  socialLinks       SocialLink[]
 }
 
 model Profile {
@@ -58,21 +64,101 @@ model Image {
 }
 
 model Link {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   url         String
-  slug        String   @unique
+  slug        String    @unique
   description String?
-  isActive    Boolean  @default(true)
-  clicks      Int      @default(0)
-  isCustom    Boolean  @default(false)
+  isActive    Boolean   @default(true)
+  clicks      Int       @default(0)
+  isCustom    Boolean   @default(false)
   favicon     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  expiresAt   DateTime?
 
   // Relations
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String? @db.ObjectId
+  user       User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String? @db.ObjectId
+  clicksData Click[]
 
   @@index([userId])
+}
+
+model Click {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  timestamp  DateTime @default(now())
+  referrer   String?
+  country    String?
+  browser    String?
+  os         String?
+  deviceType String?
+  ipAddress  String?
+
+  // Relation to the Link that was clicked
+  link   Link   @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  linkId String @db.ObjectId
+
+  @@index([linkId])
+}
+
+model LinkTreeProfile {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  theme           String   @default("default")
+  backgroundColor String?
+  textColor       String?
+  buttonStyle     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique @db.ObjectId
+}
+
+model LinkTreeLink {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  url       String
+  icon      String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  buttonColor  String?  @default("#000000")
+  borderRadius Int?     @default(8)
+  animation    String?  @default("none")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String              @db.ObjectId
+  analytics LinkTreeAnalytics[]
+}
+
+model LinkTreeAnalytics {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  type      String // 'link_click' or 'profile_view'
+  ipAddress String?
+  userAgent String?
+  referrer  String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String        @db.ObjectId
+  link   LinkTreeLink? @relation(fields: [linkId], references: [id])
+  linkId String?       @db.ObjectId
+}
+
+model SocialLink {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  platform  String
+  url       String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @db.ObjectId
 }
