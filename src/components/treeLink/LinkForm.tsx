@@ -49,7 +49,7 @@ const LinkForm: React.FC<LinkFormProps> = ({ link, onClose }) => {
     defaultValues: {
       title: link?.title || '',
       url: link?.url || '',
-      buttonColor: link?.buttonColor || '#000000',
+      bgColor: link?.bgColor || '#000000', // Changed from buttonColor to bgColor
       borderRadius: link?.borderRadius || 8,
       animation: link?.animation || 'none',
     },
@@ -106,7 +106,7 @@ const LinkForm: React.FC<LinkFormProps> = ({ link, onClose }) => {
         {/* Color Picker */}
         <FormField
           control={form.control}
-          name="buttonColor"
+          name="bgColor" // Changed from buttonColor to bgColor
           render={({ field }) => (
             <FormItem>
               <FormLabel>Button Color</FormLabel>

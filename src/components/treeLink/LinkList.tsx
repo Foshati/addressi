@@ -56,7 +56,7 @@ const SortableLinkItem = ({ link }: { link: LinkTreeLink }) => {
                     rel="noopener noreferrer"
                     className="flex-grow p-3 rounded-lg text-center font-semibold text-white"
                     style={{
-                        backgroundColor: link.buttonColor || '#000000',
+                        backgroundColor: link.bgColor || '#000000',
                         borderRadius: `${link.borderRadius || 8}px`,
                     }}
                 >
@@ -122,8 +122,11 @@ const LinkList: React.FC<LinkListProps> = ({ links: initialLinks }) => {
             const newOrder = arrayMove(links, oldIndex, newIndex);
             setLinks(newOrder);
 
-            const orderedIds = newOrder.map(l => l.id);
-            orderMutation.mutate(orderedIds);
+            const orderedItems = newOrder.map((link, index) => ({
+                id: link.id,
+                order: index,
+            }));
+            orderMutation.mutate(orderedItems);
         }
     };
 
