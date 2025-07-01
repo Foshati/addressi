@@ -9,7 +9,7 @@ import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities';
 import { motion } from 'framer-motion';
 
-import { deleteLink, updateLinkOrder, LinkTreeLink } from '@/lib/api-treeLink';
+import { deleteLink, updateLinkOrder, Link as LinkTreeLink } from '@/lib/api-treeLink';
 import LinkForm from './LinkForm';
 
 import { Button } from '@/components/ui/button';

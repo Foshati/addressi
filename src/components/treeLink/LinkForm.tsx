@@ -4,10 +4,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createLink, updateLink, LinkTreeLink } from '@/lib/api-treeLink';
+import {
+  createLink,
+  updateLink,
+  Link as LinkTreeLink,
+  linkSchema as formSchema,
+} from '@/lib/api-treeLink';
 import { toast } from 'sonner';
 import { SketchPicker } from 'react-color';
-import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,15 +33,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-// Validation schema including the new customization fields
-const formSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  url: z.string().url('Invalid URL'),
-  buttonColor: z.string().optional(),
-  borderRadius: z.number().min(0).max(50).optional(),
-  animation: z.string().optional(),
-});
-
 // Animation options
 const animationOptions = ['none', 'pulse', 'bounce', 'shake'];
 
@@ -48,7 +43,6 @@ interface LinkFormProps {
 
 const LinkForm: React.FC<LinkFormProps> = ({ link, onClose }) => {
   const queryClient = useQueryClient();
-  const [color, setColor] = useState(link?.buttonColor || '#000000');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -69,6 +63,7 @@ const LinkForm: React.FC<LinkFormProps> = ({ link, onClose }) => {
       toast.success(link ? 'Link updated successfully!' : 'Link created successfully!');
       onClose();
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       toast.error('Error', { description: error.message });
     },
